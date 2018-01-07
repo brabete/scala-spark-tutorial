@@ -1,5 +1,9 @@
 package com.sparkTutorial.rdd.airports
 
+import com.sparkTutorial.commons.Utils
+import org.apache.log4j.{Level, Logger}
+import org.apache.spark.{SparkConf, SparkContext}
+
 object AirportsByLatitudeProblem {
 
   def main(args: Array[String]) {
@@ -16,5 +20,20 @@ object AirportsByLatitudeProblem {
        "Tofino", 49.082222
        ...
      */
+
+    Logger.getLogger("org").setLevel(Level.ERROR)
+
+    val conf = new SparkConf().setAppName("airportsByLatitude").setMaster("local[*]")
+    val sc = new SparkContext(conf)
+
+    val airpots = sc.textFile("in/airports.text")
+    val airportsLat = airpots.filter(line => line.split(Utils.COMMA_DELIMITER)(6).toFloat > 40)
+
+    val airportsOutFormat = airportsLat.map(line => {
+      val splits = line.split(Utils.COMMA_DELIMITER)
+      splits(1) + ", " + splits(6)
+    })
+
+    airportsOutFormat.saveAsTextFile("out/airports_by_latitude.text")
   }
 }
